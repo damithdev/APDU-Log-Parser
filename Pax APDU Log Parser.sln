@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31911.196
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pax APDU Log Parser", "Pax APDU Log Parser\Pax APDU Log Parser.csproj", "{D02E29D1-8CA3-45A7-99A6-A792D32575CC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D02E29D1-8CA3-45A7-99A6-A792D32575CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D02E29D1-8CA3-45A7-99A6-A792D32575CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D02E29D1-8CA3-45A7-99A6-A792D32575CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D02E29D1-8CA3-45A7-99A6-A792D32575CC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {AA71692D-41C3-4244-9E1B-C846E0BB90B6}
+	EndGlobalSection
+EndGlobal
