@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Pax_APDU_Log_Parser"
         mc:Ignorable="d"
-        Title="APDU Log Parser" Height="450" Width="800">
+        Title="APDU Log Parser" Height="450" Width="800" ContentRendered="Window_ContentRendered">
     <Grid Margin="0,0,0,0">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*"/>
@@ -20,17 +20,18 @@
 
         <StackPanel Margin="5,0" HorizontalAlignment="Left"  VerticalAlignment="Top" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"  Orientation="Horizontal">
             <Button x:Name="buttonOpen" Content="OpenLog" Margin="5"  Padding="3,3,3,3" FontSize="12" Click="buttonOpen_Click"/>
-            <Button x:Name="buttonParse" Content="Parse Text" Margin="5"  Padding="3,3,3,3" FontSize="12" Click="buttonParse_Click"/>
-            <Button x:Name="buttonClear" Content="Clear Text" Margin="5"  Padding="3,3,3,3" FontSize="12"/>
+            <Button x:Name="buttonParse" Content="Parse Log" IsEnabled="False" Margin="5"  Padding="3,3,3,3" FontSize="12" Click="buttonParse_Click"/>
+            <Button x:Name="buttonSave" Content="Save Parsed Log" IsEnabled="False" Margin="5"  Padding="3,3,3,3" FontSize="12" Click="buttonSave_Click"/>
+            <Button x:Name="buttonClear" Background="IndianRed" IsEnabled="False" Content="Clear All" Margin="35,5,5,5" Padding="3,3,3,3" FontSize="12" Click="buttonClear_Click"/>
 
         </StackPanel>
 
         <DockPanel HorizontalAlignment="Stretch" Margin="10,0" VerticalAlignment="Stretch" Grid.Row="1" Grid.Column="0">
-            <TextBox Name="tbMultiLine" FontSize="12" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" ClipToBounds="True" VerticalContentAlignment="Stretch" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"></TextBox>
+            <TextBox Name="tbMultiLine" FontSize="12" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" ClipToBounds="True" VerticalContentAlignment="Stretch" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" TextChanged="tbMultiLine_TextChanged"></TextBox>
         </DockPanel>
 
         <DockPanel  Margin="10,0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.Row="1" Grid.Column="1">
-            <TextBox Name="tbMultiLineParsed" FontSize="12" Background="LightGray"  AcceptsReturn="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" ClipToBounds="True" VerticalContentAlignment="Stretch" VerticalAlignment="Stretch"></TextBox>
+            <TextBox Name="tbMultiLineParsed" FontSize="12" Background="LightGray"  AcceptsReturn="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" ClipToBounds="True" VerticalContentAlignment="Stretch" VerticalAlignment="Stretch" TextChanged="tbMultiLineParsed_TextChanged"></TextBox>
         </DockPanel>
 
         <StatusBar Grid.Row="1" Height="22" VerticalAlignment="Bottom" Grid.ColumnSpan="2" Grid.RowSpan="2" Margin="0,10,0,0">
@@ -48,7 +49,7 @@
                 </ItemsPanelTemplate>
             </StatusBar.ItemsPanel>
             <StatusBarItem>
-                <TextBlock Name="StatusIndicator" Text="Ready"></TextBlock>
+                <TextBlock Name="StatusIndicator" Text="Getting Ready"></TextBlock>
             </StatusBarItem>
             <StatusBarItem Grid.Column="1">
                 <ProgressBar Width="100" Height="20" Name="ProgressBar"/>
