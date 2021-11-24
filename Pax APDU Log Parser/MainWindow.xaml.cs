@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -41,14 +42,14 @@ namespace Pax_APDU_Log_Parser
         BackgroundWorker worker;
         private void Window_ContentRendered(object sender, EventArgs e)
         {
-             worker = new BackgroundWorker();
+            worker = new BackgroundWorker();
             worker.WorkerReportsProgress = true;
             worker.DoWork += worker_DoWork;
             worker.ProgressChanged += worker_ProgressChanged;
 
             worker.RunWorkerAsync();
             setStatus("Ready !", 0);
-            worker.CancelAsync();
+            setVersion();
 
         }
 
@@ -115,7 +116,6 @@ namespace Pax_APDU_Log_Parser
         {
             try
             {
-                worker.RunWorkerAsync();
 
                 setStatus("Extracting");
                 tbMultiLine.Text = "";
@@ -132,7 +132,7 @@ namespace Pax_APDU_Log_Parser
                 {
                     MessageBoxResult result = MessageBox.Show("Invalid File Extension " + extension);
                     _files.Clear();
-                    setStatus("Invalid File Extension",0);
+                    setStatus("Invalid File Extension", 0);
 
                 }
 
@@ -143,10 +143,9 @@ namespace Pax_APDU_Log_Parser
             {
                 Console.WriteLine(e);
                 MessageBox.Show("An error occurred!");
-                setStatus("Error",0);
+                setStatus("Error", 0);
 
             }
-            worker.CancelAsync();
 
         }
 
@@ -162,14 +161,7 @@ namespace Pax_APDU_Log_Parser
 
             while ((line = sr.ReadLine()) != null)
             {
-
-                if (line.Contains("apdu") && line.Contains("W/"))
-                {
-                    logLines += line + "\n";
-                    setStatus("Reading",progress + 1);
-
-                }
-
+                logLines += line + "\n";
             }
 
             return logLines;
@@ -197,11 +189,11 @@ namespace Pax_APDU_Log_Parser
             try
             {
 
-                    String log = tbMultiLine.Text;
-                    if (log != null && log != "")
-                    {
-                        parseAndShowLog(log);
-                    }
+                String log = tbMultiLine.Text;
+                if (log != null && log != "")
+                {
+                    parseAndShowLog(log);
+                }
 
             }
             catch (Exception)
@@ -210,50 +202,85 @@ namespace Pax_APDU_Log_Parser
                 setStatus("Error", 0);
 
             }
-            worker.CancelAsync();
 
         }
 
+        string cmdLine = "apduSend = [Command]";
+        string lcLine = "apduSend = [LC]";
+        string dataLine = "apduSend = [Data]";
+        string leLine = "apduSend = [LE]";
+        string rcvCmd = "apduRecvCmd = ";
+        string rcvState = "apduRecvState = ";
+        string seperator = "===========";
+
+        string TSMsg = "54 3A";
+        string CSMsg = "43 3A";
+        string TMsg = "543A";
+        string CMsg = "433A";
+
         private void parseAndShowLog(string log)
         {
-            worker.RunWorkerAsync();
 
             setStatus("Parsing", 0);
 
-            var cmdLine = "apduSend = [Command]";
-            var lcLine = "apduSend = [LC]";
-            var dataLine = "apduSend = [Data]";
-            var leLine = "apduSend = [LE]";
-            var rcvCmd = "apduRecvCmd = ";
-            var rcvState = "apduRecvState = ";
-            var seperator = "===========";
+
 
             String text = String.Empty;
 
             if (log.Contains(cmdLine))
             {
+                parsePaxLog(ref text, log);
+                setStatus("Parsed", 100);
+
+            }
+            else if ((log.Contains(TSMsg) && log.Contains(CSMsg)) || (log.Contains(TMsg) && log.Contains(CMsg)))
+            {
+                parseSunmiLog(ref text, log);
+                setStatus("Parsed", 100);
+            }
+            else
+            {
+                MessageBox.Show("Unknown Log Type");
+                setStatus("Parse Error", 0);
+
+
+            }
+
+
+
+            tbMultiLineParsed.Text = text;
+
+        }
+
+        Regex rgx = new Regex("[^a-zA-Z0-9]");
+
+        private void parsePaxLog(ref string text, string log)
+        {
+
+
+            if (log.Contains("apdu") && log.Contains("W/"))
+            {
                 string[] lines = log.Split("\n");
-                Regex rgx = new Regex("[^a-zA-Z0-9 -]");
                 int counter = 1;
                 foreach (var item in lines)
                 {
-                    setStatus("Parsing",progress + (90 - progress)/lines.Length);
+                    setStatus("Parsing", progress + (90 - progress) / lines.Length);
                     if (item.Contains(cmdLine))
                     {
-                        string body = rgx.Replace(item.Substring(item.IndexOf(cmdLine) + cmdLine.Length),"");
-                        printCommandType(body,ref text,counter);
-                        text += "[Command] "+body+"\n";
+                        string body = rgx.Replace(item.Substring(item.IndexOf(cmdLine) + cmdLine.Length), "");
+                        printCommandType(body, ref text, counter);
+                        text += "[Command] " + body + "\n";
 
 
                     }
                     else if (item.Contains(lcLine))
                     {
-                        string body = rgx.Replace(item.Substring(item.IndexOf(lcLine) + lcLine.Length),"");
+                        string body = rgx.Replace(item.Substring(item.IndexOf(lcLine) + lcLine.Length), "");
                         text += "[LC] " + body + "\n";
                     }
                     else if (item.Contains(dataLine))
                     {
-                        string body =  rgx.Replace(item.Substring(item.IndexOf(dataLine) + dataLine.Length), "");
+                        string body = rgx.Replace(item.Substring(item.IndexOf(dataLine) + dataLine.Length), "");
 
                         text += "[Data] " + body + "\n";
 
@@ -267,7 +294,7 @@ namespace Pax_APDU_Log_Parser
                     }
                     else if (item.Contains(leLine))
                     {
-                        string body = rgx.Replace(item.Substring(item.IndexOf(leLine) + leLine.Length),"");
+                        string body = rgx.Replace(item.Substring(item.IndexOf(leLine) + leLine.Length), "");
                         text += "[LE] " + body + "\n";
                     }
                     else if (item.Contains(rcvCmd))
@@ -284,7 +311,7 @@ namespace Pax_APDU_Log_Parser
                     }
                     else if (item.Contains(rcvState))
                     {
-                        string body = rgx.Replace(item.Substring(item.IndexOf(rcvState) + rcvState.Length),"");
+                        string body = rgx.Replace(item.Substring(item.IndexOf(rcvState) + rcvState.Length), "");
                         text += "[State] " + body + "\n";
                     }
                     else if (item.Contains(seperator))
@@ -293,25 +320,81 @@ namespace Pax_APDU_Log_Parser
                         text += ". ============================================================== \n\n";
                     }
                 }
-                setStatus("Parsed", 100);
-
-            }
-            else
-            {
-                MessageBox.Show("Unknown Log Type");
-                setStatus("Parse Error", 0);
-
-
             }
 
-
-
-            tbMultiLineParsed.Text = text;
-            worker.CancelAsync();
 
         }
 
-        private void printCommandType(String command,ref string text,int counter)
+        private void parseSunmiLog(ref string text, string log)
+        {
+            string cleaned = log.Replace("\n", "");
+            cleaned = rgx.Replace(log.Substring(log.IndexOf(lcLine) + lcLine.Length), "");
+            string[] lines = cleaned.Split(TMsg);
+
+            int counter = 1;
+            foreach (var item in lines)
+            {
+                if (item.Contains(CMsg))
+                {
+                    string[] innerLines = item.Split(CMsg);
+
+                    if (innerLines.Length > 0)
+                    {
+                        var value = innerLines[0];
+
+                        printCommandType(value, ref text, counter);
+
+                        text += "T:" + value + "\n";
+
+
+                        if (TLVParserUtility.OnlyHexInString(value) && TLVParserUtility.isTlvValue(value))
+                        {
+                            List<TlvValue> parsedTlv = TLVParserUtility.getParsedTLV(value);
+                            text += "\n";
+                            printText(ref text, parsedTlv, 0);
+                            counter++;
+                        }
+                    }
+
+                    if (innerLines.Length > 1)
+                    {
+                        var value = innerLines[1];
+                        var response = value.Substring(0, value.Length - 4);
+                        var sw = value.Substring(value.Length - 4, 4);
+                        text += "C:" + value + "\n";
+
+
+                        if (TLVParserUtility.OnlyHexInString(response) && TLVParserUtility.isTlvValue(response))
+                        {
+                            List<TlvValue> parsedTlv = TLVParserUtility.getParsedTLV(response);
+                            text += "\n";
+                            printText(ref text, parsedTlv, 0);
+                            text += "\n";
+                            text += "SW: " + sw;
+                            counter++;
+                        }
+                    }
+
+                    text += "\n\n ============================================================== \n\n";
+
+
+
+
+
+                }
+                else
+                {
+                    text += item + "\n";
+
+                }
+
+            }
+
+
+
+        }
+
+        private void printCommandType(String command, ref string text, int counter)
         {
             string cla = command.Substring(0, 2);
             string ins = command.Substring(2, 2);
@@ -319,9 +402,9 @@ namespace Pax_APDU_Log_Parser
             string msg = "UNKNOWN MESSEAGE";
             string msg2 = "";
 
-            if(cla == "8C" || cla == "84")
+            if (cla == "8C" || cla == "84")
             {
-                if(ins == "1E")
+                if (ins == "1E")
                 {
                     //  The APPLICATION BLOCK command
 
@@ -336,7 +419,8 @@ namespace Pax_APDU_Log_Parser
                     // EMV Book 3 Section 6.5.1
 
                     msg = "APPLICATION BLOCK";
-                }else if(ins == "18")
+                }
+                else if (ins == "18")
                 {
                     //  The APPLICATION UNBLOCK command
 
@@ -348,7 +432,8 @@ namespace Pax_APDU_Log_Parser
                     // EMV Book 3 Section 6.5.2
 
                     msg = "APPLICATION UNBLOCK";
-                }else if (ins == "16")
+                }
+                else if (ins == "16")
                 {
                     //  The CARD BLOCK command
 
@@ -363,7 +448,8 @@ namespace Pax_APDU_Log_Parser
                     // EMV Book 3 Section 6.5.3
 
                     msg = "CARD BLOCK";
-                }else if(ins == "24")
+                }
+                else if (ins == "24")
                 {
                     //  The PIN CHANGE/UNBLOCK command
 
@@ -384,13 +470,13 @@ namespace Pax_APDU_Log_Parser
                 }
 
             }
-            else if(cla == "00")
+            else if (cla == "00")
             {
-                if(ins == "A4")
+                if (ins == "A4")
                 {
                     msg = "SELECT COMMAND";
                 }
-                else if(ins == "82")
+                else if (ins == "82")
                 {
                     //  The EXTERNAL AUTHENTICATE command 
 
@@ -401,7 +487,8 @@ namespace Pax_APDU_Log_Parser
                     // EMV Book 3 Section 6.5.4
 
                     msg = "EXTERNAL AUTHENTICATE";
-                }else if(ins == "84")
+                }
+                else if (ins == "84")
                 {
                     //  The GET CHALLENGE command
 
@@ -413,7 +500,8 @@ namespace Pax_APDU_Log_Parser
 
                     msg = "GET CHALLENGE";
 
-                }else if(ins == "88")
+                }
+                else if (ins == "88")
                 {
 
                     // The INTERNAL AUTHENTICATE command
@@ -428,7 +516,8 @@ namespace Pax_APDU_Log_Parser
                     // EMV Book 3 Section 6.5.9
                     msg = "INTERNAL AUTHENTICATE";
 
-                }else if(ins == "B2")
+                }
+                else if (ins == "B2")
                 {
                     // The READ RECORD command
 
@@ -437,7 +526,8 @@ namespace Pax_APDU_Log_Parser
 
                     msg = "READ RECORD";
 
-                }else if(ins == "20")
+                }
+                else if (ins == "20")
                 {
                     //  The VERIFY command
 
@@ -452,9 +542,9 @@ namespace Pax_APDU_Log_Parser
 
                 }
             }
-            else if(cla == "80")
+            else if (cla == "80")
             {
-                if(ins == "AE")
+                if (ins == "AE")
                 {
                     //  The GENERATE AC command
 
@@ -501,8 +591,9 @@ namespace Pax_APDU_Log_Parser
 
                     }
 
-                    
-                }else if(ins == "CA")
+
+                }
+                else if (ins == "CA")
                 {
                     //  The GET DATA command
 
@@ -520,7 +611,8 @@ namespace Pax_APDU_Log_Parser
 
                     msg = "GET DATA";
 
-                }else if(ins == "A8")
+                }
+                else if (ins == "A8")
                 {
                     //  The GET PROCESSING OPTIONS command
 
@@ -534,8 +626,8 @@ namespace Pax_APDU_Log_Parser
                 }
             }
 
-            text += "\n" +counter+") "+ msg + "\n";
-            if (msg2 != "") text += "\t"+ msg2 + "\n";
+            text += "\n" + counter + ") " + msg + "\n";
+            if (msg2 != "") text += "\t" + msg2 + "\n";
             text += "_____________________________\n";
         }
 
@@ -556,7 +648,7 @@ namespace Pax_APDU_Log_Parser
                 {
 
                 }
-                if(parsedTlv != null)
+                if (parsedTlv != null)
                 {
                     printText(ref rootText, parsedTlv, 0);
                 }
@@ -568,9 +660,9 @@ namespace Pax_APDU_Log_Parser
 
         }
 
-        private void printText(ref string text, List<TlvValue> tlv,int level)
+        private void printText(ref string text, List<TlvValue> tlv, int level)
         {
-            if(tlv != null)
+            if (tlv != null)
             {
                 foreach (var item in tlv)
                 {
@@ -602,7 +694,7 @@ namespace Pax_APDU_Log_Parser
             return tabSpace;
         }
 
-      
+
 
         private void buttonOpen_Click(object sender, RoutedEventArgs e)
         {
@@ -629,24 +721,24 @@ namespace Pax_APDU_Log_Parser
             _files.Clear();
             tbMultiLine.Clear();
             tbMultiLineParsed.Clear();
-            setStatus("Ready !",0);
+            setStatus("Ready !", 0);
 
         }
 
         private void buttonSave_Click(object sender, RoutedEventArgs e)
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.FileName = "Parsed Log " + DateTime.Now.ToFileTime();
+            string filename = String.Format("parsed log {0}.pLog",
+                                DateTime.UtcNow.ToString("yyyy-MM-dd HH-mm-ss"));
+            saveFileDialog.FileName = "parsed log " + filename;
             saveFileDialog.DefaultExt = ".pLog";
             if (saveFileDialog.ShowDialog() == true)
             {
-                worker.RunWorkerAsync();
 
                 File.WriteAllText(saveFileDialog.FileName, tbMultiLineParsed.Text);
                 setStatus("Saved", 100);
             }
 
-            worker.CancelAsync();
 
         }
 
@@ -678,17 +770,33 @@ namespace Pax_APDU_Log_Parser
         BackgroundWorker bgWorkerExport;
 
         private static int progress = 0;
-        private void setStatus(String text,int percentage = -1)
+        private void setStatus(String text, int percentage = -1)
         {
             StatusIndicator.Text = text;
             if (percentage == -1)
             {
-                if(progress < 90)progress += 5;
+                if (progress < 90) progress += 5;
             }
             else
             {
                 progress = percentage;
             }
+        }
+
+        private void setVersion()
+        {
+            string version = null;
+            try
+            {
+                //// get deployment version
+                version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+
+            }
+            catch (Exception)
+            {
+            }
+
+            Info.Text = "APDU Log Parser for (Pax | Sunmi) Terminals." + (version != null ? "Version: "+version : "");
         }
     }
 
