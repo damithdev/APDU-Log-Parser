@@ -1,6 +1,6 @@
 ﻿using BerTlv;
 using Microsoft.Win32;
-using Pax_APDU_Log_Parser.Models;
+using APDU_Log_Parser.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -22,7 +22,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Pax_APDU_Log_Parser
+namespace APDU_Log_Parser
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -382,11 +382,12 @@ namespace Pax_APDU_Log_Parser
 
 
                 }
-                else
-                {
-                    text += item + "\n";
+                //else
+                //{
+                //    if(item.Length >=0)
+                //    text += item + "\n";
 
-                }
+                //}
 
             }
 

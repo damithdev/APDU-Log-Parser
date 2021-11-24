@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Pax_APDU_Log_Parser.Models
+namespace APDU_Log_Parser.Models
 {
     public class TlvValue
     {

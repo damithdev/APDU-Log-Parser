@@ -3,11 +3,12 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <RootNamespace>Pax_APDU_Log_Parser</RootNamespace>
+    <RootNamespace>APDU_Log_Parser</RootNamespace>
     <UseWPF>true</UseWPF>
     <SignAssembly>false</SignAssembly>
     <AssemblyOriginatorKeyFile>paymedia.pfx</AssemblyOriginatorKeyFile>
-    <DelaySign>true</DelaySign>
+    <DelaySign>false</DelaySign>
+    <StartupObject>APDU_Log_Parser.App</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>

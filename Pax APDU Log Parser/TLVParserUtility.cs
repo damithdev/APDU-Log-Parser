@@ -1,6 +1,6 @@
 ﻿using BerTlv;
 using LumenWorks.Framework.IO.Csv;
-using Pax_APDU_Log_Parser.Models;
+using APDU_Log_Parser.Models;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -8,7 +8,7 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Pax_APDU_Log_Parser
+namespace APDU_Log_Parser
 {
     public class TLVParserUtility
     {
@@ -81,7 +81,7 @@ namespace Pax_APDU_Log_Parser
 
         public static void InitEmvTags()
         {
-            var csvText = Properties.Resources.emvtags;
+            var csvText = APDU_Log_Parser.Properties.Resources.emvtags;
             var csvTable = new DataTable();
 
             using (var csvReader = new CsvReader(new StringReader(csvText), true))

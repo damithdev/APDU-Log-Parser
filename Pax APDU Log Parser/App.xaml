@@ -1,7 +1,7 @@
-﻿<Application x:Class="Pax_APDU_Log_Parser.App"
+﻿<Application x:Class="APDU_Log_Parser.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:Pax_APDU_Log_Parser"
+             xmlns:local="clr-namespace:APDU_Log_Parser"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
          
