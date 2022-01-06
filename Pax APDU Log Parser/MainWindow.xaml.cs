@@ -31,6 +31,7 @@ namespace APDU_Log_Parser
     {
 
         private readonly string[] acceptedExtensions = new string[] { ".log", ".txt" };
+        private String CDOL;
         public MainWindow()
         {
             InitializeComponent();
@@ -220,7 +221,9 @@ namespace APDU_Log_Parser
 
         private void parseAndShowLog(string log)
         {
-
+            CDOL = null;
+            CdolLen = 0;
+            CDolMap = null;
             setStatus("Parsing", 0);
 
 
@@ -290,6 +293,64 @@ namespace APDU_Log_Parser
                             text += "\n";
                             printText(ref text, parsedTlv, 0);
                         }
+
+                        if (body.Length.Equals(CdolLen * 2) && body.Length >= 4)
+                        {
+
+
+                            try
+                            {
+                                text += "\n";
+
+                                int dataIdx = 0;
+                                int dolIdx = 0;
+                                int dolTagLen = 2;
+                                while (dolIdx + dolTagLen < CDOL.Length)
+                                {
+                                    string tag = CDOL.Substring(dolIdx, dolTagLen);
+                                    if (CdolTags.Contains(tag))
+                                    {
+                                        dolIdx = dolIdx + dolTagLen;
+
+                                        String len = CDOL.Substring(dolIdx, 2);
+                                        int lenValue = int.Parse(len);
+                                        String value = body.Substring(dataIdx,lenValue * 2);
+
+                                        text += getTabSpace(1) + tag + " " + len + " " + value + "\n";
+
+                                        EmvTag doltag = TLVParserUtility.emvTags.GetValueOrDefault(tag);
+
+                                        if(doltag != null)
+                                        {
+                                            text += getTabSpace(1) + doltag.name + "\n";
+                                            text += "\n";
+                                        }
+                                        
+
+                                        dataIdx += lenValue * 2;
+                                        dolIdx += 2;
+                                        dolTagLen = 2;
+                                    }
+                                    else if (dolTagLen == 4)
+                                    {
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        dolTagLen += 2;
+                                    }
+                                }
+
+                            } catch (Exception e)
+                            {
+                                MessageBox.Show(e.Message);
+                            }
+                            
+
+                        }
+                        System.Diagnostics.Debug.WriteLine(body.Length);
+                        System.Diagnostics.Debug.WriteLine(CdolLen);
+                        System.Diagnostics.Debug.WriteLine("=========");
 
                     }
                     else if (item.Contains(leLine))
@@ -661,12 +722,35 @@ namespace APDU_Log_Parser
 
         }
 
+        List<String> CdolTags = new List<string> { "9F02", "9F03", "9F1A", "95", "5F2A", "9A", "9C", "9F37", "9F35", "9F53" };
+        IDictionary<String, int> CDolMap = null;
+        int CdolLen = 0;
+
         private void printText(ref string text, List<TlvValue> tlv, int level)
         {
             if (tlv != null)
             {
+                CDolMap = new Dictionary<string, int>();
                 foreach (var item in tlv)
                 {
+                    if(item.tag == "8C")
+                    {
+                        int CdolLenCal = 0;
+                        CDOL = item.value;
+                        foreach(String tag in CdolTags)
+                        {
+                            if (CDOL.Contains(tag))
+                            {
+                                string[] data = CDOL.Split(tag);
+                                int len = int.Parse(data[1].Substring(0, 2));
+                                CDolMap.Add(tag, len);
+                                CdolLenCal += len;
+                            }
+                        }
+                        CdolLen = CdolLenCal;
+
+                    }
+
                     if (TLVParserUtility.emvTags.ContainsKey(item.tag))
                     {
                         EmvTag tag = TLVParserUtility.emvTags.GetValueOrDefault(item.tag);
